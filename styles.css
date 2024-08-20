@@ -6,8 +6,7 @@ body {
     margin: 0;
     font-family: courier, monospace;
     font-size: 8pt;
-    font-weight: bold;
-    color: white;
+    color: black;
 }
 
 /* Background image for index.html */
@@ -51,7 +50,7 @@ td {
 
 td.middle {
     text-align: left;
-    background-color: rgba(255, 255, 255, 0.3); /* White background with 30% opacity */
+    background-color: rgba(255, 255, 255, 0.6); /* White background with 60% opacity */
     padding: 20px; /* Adding some padding for better readability */
     box-sizing: border-box; /* Ensures padding doesn't affect cell size */
 }

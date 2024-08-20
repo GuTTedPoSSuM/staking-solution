@@ -5,8 +5,8 @@ body {
     align-items: center;
     height: 100vh;
     margin: 0;
-    font-family: Arial, sans-serif;
-    font-size: 5pt;
+    font-family: courier, monospace;
+    font-size: 6pt;
     color: black;
 }
 

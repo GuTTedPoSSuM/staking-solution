@@ -1,0 +1,51 @@
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    font-size: 8pt;
+    color: white;
+}
+
+table {
+    width: 100%;
+    height: 100%;
+    border-spacing: 0;
+    padding: 0;
+    background-size: cover;
+}
+
+td {
+    width: 33.3%;
+    height: 33.3%;
+    padding: 0;
+    margin: 0;
+    vertical-align: middle;
+}
+
+td.middle {
+    text-align: left;
+}
+
+.middle div {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+/* Background image for index.html */
+body.index table {
+    background-image: url('https://github.com/GuTTedPoSSuM/GP-Staking-Solution/blob/main/home.png');
+}
+
+/* Background image for staking.html */
+body.staking table {
+    background-image: url('https://github.com/GuTTedPoSSuM/GP-Staking-Solution/blob/main/staking-solution.png');
+}
+
+/* Background image for contact.html */
+body.contact table {
+    background-image: url('https://github.com/GuTTedPoSSuM/GP-Staking-Solution/blob/main/contact.png');
+}

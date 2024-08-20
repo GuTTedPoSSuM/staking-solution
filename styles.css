@@ -5,8 +5,8 @@ body {
     height: 100vh;
     margin: 0;
     font-family: courier, monospace;
-    font-size: 10pt;
-    color: white;
+    font-size: 8pt;
+    color: black;
 }
 
 /* Background image for index.html */
@@ -38,7 +38,6 @@ table {
     height: 100%;
     border-spacing: 0;
     padding: 0;
-    background-size: cover;
 }
 
 td {
@@ -51,9 +50,13 @@ td {
 
 td.middle {
     text-align: left;
+    background-color: rgba(255, 255, 255, 0.3); /* White background with 30% opacity */
+    padding: 20px; /* Adding some padding for better readability */
+    box-sizing: border-box; /* Ensures padding doesn't affect cell size */
 }
 
 .middle div {
     margin-left: auto;
     margin-right: auto;
+    color: black; /* Ensure text stays black and readable */
 }

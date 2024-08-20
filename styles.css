@@ -9,6 +9,29 @@ body {
     font-size: 8pt;
     color: black;
 }
+/* Background image for index.html */
+body.index {
+    background-image: url('https://github.com/GuTTedPoSSuM/staking-solution/blob/main/home.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Background image for staking.html */
+body.staking {
+    background-image: url('https://github.com/GuTTedPoSSuM/staking-solution/blob/main/staking-solution.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* Background image for contact.html */
+body.contact {
+    background-image: url('https://github.com/GuTTedPoSSuM/staking-solution/blob/main/contact.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
 
 table {
     width: 100%;

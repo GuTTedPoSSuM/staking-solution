@@ -7,6 +7,12 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="contact">
+    <!-- Background video -->
+    <video autoplay muted loop id="background-video">
+        <source src="CONTACT.mp4" type="video/mp4">
+        Your browser does not support the video tag.
+    </video>
+
     <table>
         <tr>
             <td></td>
@@ -14,7 +20,7 @@
                 <div>
                     <h1>Contact Us</h1>
 
-                    <form action="https://formspree.io/f/myzgnyzp" method="POST"> <!-- Removed the extra "}" -->
+                    <form action="https://formspree.io/f/myzgnyzp" method="POST">
                         <label for="email">Email:</label><br>
                         <input type="email" id="email" name="_replyto" required><br><br>
 

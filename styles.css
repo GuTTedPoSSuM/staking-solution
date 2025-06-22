@@ -9,7 +9,7 @@ body {
     color: black;
 }
 
-/* Styling for the background video in index.html and staking.html */
+/* Styling for the background video in index.html, staking.html, and contact.html */
 #background-video {
     position: fixed;
     top: 0;
@@ -31,12 +31,9 @@ body.staking {
     background-color: #4169E1; /* Royal blue background */
 }
 
-/* Background image for contact.html */
+/* Background color for contact.html (cyan blue, video replaces image) */
 body.contact {
-    background-image: url('https://raw.githubusercontent.com/GuTTedPoSSuM/staking-solution/main/contact.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    background-color: #00CED1; /* Cyan blue background */
 }
 
 table {

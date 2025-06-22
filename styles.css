@@ -9,7 +9,7 @@ body {
     color: black;
 }
 
-/* Styling for the background video in index.html */
+/* Styling for the background video in index.html and staking.html */
 #background-video {
     position: fixed;
     top: 0;
@@ -26,12 +26,9 @@ body.index {
     background-color: #4169E1; /* Royal blue background */
 }
 
-/* Background image for staking.html */
+/* Background color for staking.html (royal blue, video replaces image) */
 body.staking {
-    background-image: url('https://raw.githubusercontent.com/GuTTedPoSSuM/staking-solution/main/staking-solution.png');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+    background-color: #4169E1; /* Royal blue background */
 }
 
 /* Background image for contact.html */

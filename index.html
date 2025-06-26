@@ -34,7 +34,7 @@
     <script>
         // Fetch the latest Ethereum block data from Infura
         async function fetchLatestBlock() {
-            // Using your provided Infura Project ID
+            // REPLACE with a new Infura Project ID from https://infura.io (regenerate for security)
             const apiKey = 'e8b9c0b8bfd84c7baaab142e4fab5ced';
             const statusDiv = document.getElementById('status');
             const blockDiv = document.getElementById('latest-block');
@@ -53,15 +53,14 @@
             }
 
             try {
-                // Define JSON payload as a plain object
+                // Define JSON payload
                 const payload = {
                     jsonrpc: '2.0',
                     method: 'eth_getBlockByNumber',
                     params: ['latest', true],
                     id: 1
                 };
-                // Log the exact payload being sent
-                console.log('Sending Infura request:', JSON.stringify(payload, null, 2));
+                console.log('Sending Infura request:', JSON.stringify(payload, null, 2)); // Log request payload
 
                 const response = await fetch(`https://mainnet.infura.io/v3/${apiKey}`, {
                     method: 'POST',
@@ -80,7 +79,7 @@
                 console.log('Infura API response:', JSON.stringify(data, null, 2)); // Detailed logging
 
                 if (data.error) {
-                    throw new Error(data.error.message || 'Infura API error (e.g., invalid Project ID or request format)');
+                    throw new Error(data.error.message || 'Infura API error (e.g., invalid Project ID or request format). Get a new key from https://infura.io');
                 }
 
                 if (data.result && data.result.number && data.result.hash && data.result.timestamp) {

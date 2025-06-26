@@ -44,10 +44,17 @@
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
                 const data = await response.json();
-                if (data.result) {
+                console.log('Etherscan API response:', data); // Log raw response for debugging
+
+                if (data.result && data.result.number && data.result.hash && data.result.timestamp) {
                     const blockNumber = parseInt(data.result.number, 16);
                     const blockHash = data.result.hash;
                     const timestamp = new Date(parseInt(data.result.timestamp, 16) * 1000).toLocaleString();
+                    
+                    if (isNaN(blockNumber) || !blockHash || isNaN(Date.parse(timestamp))) {
+                        throw new Error('Invalid block data format');
+                    }
+
                     blockDiv.innerHTML = `
                         Block Number: ${blockNumber} <br>
                         Hash: ${blockHash} <br>
@@ -55,7 +62,7 @@
                     `;
                     statusDiv.textContent = 'Block data loaded successfully';
                 } else {
-                    throw new Error('No block data available');
+                    throw new Error(data.error?.message || 'No valid block data available');
                 }
             } catch (error) {
                 blockDiv.textContent = 'Failed to load block data';

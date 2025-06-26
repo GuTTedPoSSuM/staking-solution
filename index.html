@@ -31,21 +31,27 @@
     </div>
 
     <script>
-        // Fetch the latest Ethereum block data
+        // Fetch the latest Ethereum block data from Etherscan
         async function fetchLatestBlock() {
+            const apiKey = 'YOUR_ETHERSCAN_API_KEY'; // Replace with your Etherscan API key
             const statusDiv = document.getElementById('status');
             const blockDiv = document.getElementById('latest-block');
             try {
-                const response = await fetch('https://beaconcha.in/api/v1/blocks/head');
+                const response = await fetch(
+                    `https://api.etherscan.io/api?module=proxy&action=eth_getBlockByNumber&tag=latest&boolean=true&apikey=${apiKey}`
+                );
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
                 const data = await response.json();
-                if (data.data) {
+                if (data.result) {
+                    const blockNumber = parseInt(data.result.number, 16);
+                    const blockHash = data.result.hash;
+                    const timestamp = new Date(parseInt(data.result.timestamp, 16) * 1000).toLocaleString();
                     blockDiv.innerHTML = `
-                        Block: ${data.data.slot} <br>
-                        Proposer: ${data.data.proposer} <br>
-                        Root: ${data.data.root}
+                        Block Number: ${blockNumber} <br>
+                        Hash: ${blockHash} <br>
+                        Timestamp: ${timestamp}
                     `;
                     statusDiv.textContent = 'Block data loaded successfully';
                 } else {

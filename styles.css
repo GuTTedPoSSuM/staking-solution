@@ -1,69 +1,135 @@
-body {
-    display: relative; flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+/* styles.css */
+
+/* Reset default margins and set global styles */
+* {
     margin: 0;
-    font-family: 'Courier New', courier, monospace;
-    font-size: 10pt;
-    color: black;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-/* Styling for the background video in all pages */
+body {
+    font-family: Arial, sans-serif;
+    color: white;
+    background: black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    text-align: center;
+}
+
+/* Background video */
 #background-video {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    object-fit: cover; /* Centers and scales video */
-    z-index: -1; /* Behind content */
-    opacity: 0.3; /* 30% opacity */
+    object-fit: cover;
+    z-index: -1;
+    opacity: 0.5;
 }
 
-/* Background color for index.html */
-body.index {
-    background-color: #4169E1; /* Royal blue */
-    background-image: url('fallback-image.jpg'); /* Optional fallback */
-}
-
-/* Background color for staking.html */
-body.staking {
-    background-color: #4169E1; /* Royal blue */
-    background-image: url('fallback-image.jpg'); /* Optional fallback */
-}
-
-/* Background color for contact.html */
-body.contact {
-    background-color: #00CED1; /* Cyan blue */
-    background-image: url('fallback-image.jpg'); /* Optional fallback */
-}
-
-table {
-    width: 100%;
-    height: 100%;
-    border-spacing: 0;
-    padding: 0;
-}
-
-td {
-    width: 33.3%;
-    height: 33.3%;
-    padding: 0;
-    margin: 0;
-    vertical-align: middle;
-}
-
-td {
-    width: .middle;
-    text-align: left;
-    background-color: rgba(255, 255, 255, 0.6); /* Semi-transparent white */
+/* Main container */
+.container {
+    background: rgba(0, 0, 0, 0.7);
     padding: 20px;
-    box-sizing: border-box;
+    border-radius: 10px;
+    max-width: 600px;
+    margin: 20px;
 }
 
-.middle div {
-    margin-left: auto;
-    margin-right: auto;
-    color: black;
+/* Typography */
+h1 {
+    font-size: 2em;
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 1.5em;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+h3 {
+    font-size: 1.2em;
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+
+p {
+    font-size: 1em;
+    line-height: 1.5;
+    margin: 10px 0;
+}
+
+/* Form elements */
+label, select, input, textarea {
+    display: block;
+    width: 100%;
+    margin: 10px 0;
+    font-size: 1em;
+}
+
+select, input, textarea {
+    padding: 10px;
+    border-radius: 5px;
+    border: none;
+    background: #333;
+    color: white;
+}
+
+textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+/* Buttons */
+button {
+    display: inline-block;
+    padding: 10px 20px;
+    margin: 10px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+button:hover {
+    background: #218838;
+}
+
+button:disabled {
+    background: #666;
+    cursor: not-allowed;
+}
+
+/* Status messages */
+#status {
+    margin-top: 10px;
+    font-size: 0.9em;
+    color: #ccc;
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+    .container {
+        margin: 10px;
+        padding: 15px;
+    }
+
+    h1 {
+        font-size: 1.5em;
+    }
+
+    button {
+        width: 100%;
+        margin: 5px 0;
+    }
+
+    select, input, textarea {
+        font-size: 0.9em;
+    }
 }

@@ -35,26 +35,60 @@
         <div id="status"></div>
     </div>
 
+    <!-- EmailJS SDK -->
+    <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
     <script>
-        function submitForm(event) {
+        // Initialize EmailJS with User ID
+        (function(){
+            emailjs.init('bUU7Y5B0OTbMDGHnK'); // Your EmailJS User ID
+        })();
+
+        async function submitForm(event, attempt = 1, maxAttempts = 3) {
             event.preventDefault();
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('email').value;
-            const message = document.getElementById('message').value;
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const message = document.getElementById('message').value.trim();
             const statusDiv = document.getElementById('status');
 
-            // Placeholder for backend submission
+            // Client-side validation
+            if (!name || !email || !message) {
+                statusDiv.textContent = 'Error: Please fill out all fields';
+                return;
+            }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                statusDiv.textContent = 'Error: Please enter a valid email address';
+                return;
+            }
+
             statusDiv.textContent = 'Sending message...';
             try {
-                // Simulate backend submission (replace with actual API call)
-                // Example: await fetch('/api/contact', { method: 'POST', body: JSON.stringify({ name, email, message }) });
-                setTimeout(() => {
-                    statusDiv.textContent = 'Message sent successfully!';
-                    document.getElementById('contactForm').reset();
-                }, 1000);
+                // Set up timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5-second timeout
+
+                console.log('Sending EmailJS request (attempt ' + attempt + '):', { name, email, message });
+
+                // Send email via EmailJS
+                const response = await emailjs.send('service_e4a81wh', 'template_lufy8wq', {
+                    from_name: name,
+                    from_email: email,
+                    message: message
+                }, { signal: controller.signal });
+
+                clearTimeout(timeoutId);
+                console.log('EmailJS response (attempt ' + attempt + '):', response);
+
+                statusDiv.textContent = 'Message sent successfully!';
+                document.getElementById('contactForm').reset();
             } catch (error) {
-                statusDiv.textContent = 'Failed to send message. Please try again.';
-                console.error('Error submitting form:', error);
+                console.error('Error sending email (attempt ' + attempt + '):', error);
+                if (error.name === 'AbortError' && attempt < maxAttempts) {
+                    const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
+                    console.log('Retrying after ' + delay + 'ms...');
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    return submitForm(event, attempt + 1, maxAttempts);
+                }
+                statusDiv.textContent = `Error: Failed to send message (${error.text || error.message})`;
             }
         }
     </script>

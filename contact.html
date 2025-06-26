@@ -13,29 +13,50 @@
         Your browser does not support the video tag.
     </video>
 
-    <table>
-        <tr>
-            <td></td>
-            <td class="middle">
-                <div>
-                    <h1>Contact Us</h1>
+    <div class="container">
+        <h1>Contact Guttedpossum Staking Solutions</h1>
+        <p>Have questions about staking with GPSS? Fill out the form below, and we’ll get back to you as soon as possible.</p>
 
-                    <form action="https://formspree.io/f/myzgnyzp" method="POST">
-                        <label for="email">Email:</label><br>
-                        <input type="email" id="email" name="_replyto" required><br><br>
+        <form id="contactForm" onsubmit="submitForm(event)">
+            <label for="name">Name:</label>
+            <input type="text" id="name" placeholder="Enter your name" required>
 
-                        <label for="message">Message:</label><br>
-                        <textarea id="message" name="message" required></textarea><br><br>
+            <label for="email">Email:</label>
+            <input type="email" id="email" placeholder="Enter your email" required>
 
-                        <input type="submit" value="Send">
-                    </form>
+            <label for="message">Message:</label>
+            <textarea id="message" placeholder="Enter your message" required></textarea>
 
-                    <br><br>
-                    <button onclick="window.location.href='index.html'">Home</button>
-                </div>
-            </td>
-            <td></td>
-        </tr>
-    </table>
+            <button type="submit">Send Message</button>
+        </form>
+
+        <button onclick="window.location.href='index.html'">Home</button>
+
+        <div id="status"></div>
+    </div>
+
+    <script>
+        function submitForm(event) {
+            event.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const message = document.getElementById('message').value;
+            const statusDiv = document.getElementById('status');
+
+            // Placeholder for backend submission
+            statusDiv.textContent = 'Sending message...';
+            try {
+                // Simulate backend submission (replace with actual API call)
+                // Example: await fetch('/api/contact', { method: 'POST', body: JSON.stringify({ name, email, message }) });
+                setTimeout(() => {
+                    statusDiv.textContent = 'Message sent successfully!';
+                    document.getElementById('contactForm').reset();
+                }, 1000);
+            } catch (error) {
+                statusDiv.textContent = 'Failed to send message. Please try again.';
+                console.error('Error submitting form:', error);
+            }
+        }
+    </script>
 </body>
 </html>

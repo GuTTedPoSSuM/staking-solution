@@ -5,68 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Staking - GPSS</title>
     <link rel="stylesheet" href="styles.css">
-    <style>
-        /* Basic styling for usability */
-        body.staking {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            color: white;
-            background: black;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            text-align: center;
-        }
-        #background-video {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: -1;
-            opacity: 0.5;
-        }
-        .container {
-            background: rgba(0, 0, 0, 0.7);
-            padding: 20px;
-            border-radius: 10px;
-            max-width: 500px;
-        }
-        h1 {
-            font-size: 2em;
-            margin-bottom: 20px;
-        }
-        label, select, input, button {
-            display: block;
-            width: 100%;
-            margin: 10px 0;
-            font-size: 1em;
-        }
-        input, select {
-            padding: 10px;
-            border-radius: 5px;
-            border: none;
-        }
-        button {
-            padding: 10px;
-            background: #28a745;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        button:disabled {
-            background: #666;
-            cursor: not-allowed;
-        }
-        #status {
-            margin-top: 10px;
-            font-size: 0.9em;
-            color: #ccc;
-        }
-    </style>
 </head>
 <body class="staking">
     <!-- Background video -->
@@ -90,6 +28,138 @@
         <input type="number" id="amount" placeholder="Enter ETH amount" min="0" step="0.01">
 
         <button id="connectButton" onclick="connectWallet()">Connect Wallet</button>
-        <button id="stakeButton" onclick="stakeEthereum...
+        <button id="stakeButton" onclick="stakeEthereum()" disabled>Stake Ethereum</button>
+        <button onclick="window.location.href='index.html'">Home</button>
 
-Something went wrong, please refresh to reconnect or try again.
+        <div id="status">Wallet not connected</div>
+    </div>
+
+    <!-- Include ethers.js from CDN for Ethereum interactions -->
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+    <script>
+        let provider;
+        let signer;
+        let userAddress;
+
+        // Initialize page
+        window.onload = async () => {
+            checkWalletConnection();
+            if (window.ethereum) {
+                window.ethereum.on('accountsChanged', () => {
+                    checkWalletConnection();
+                });
+                window.ethereum.on('chainChanged', () => {
+                    checkWalletConnection();
+                });
+            }
+        };
+
+        // Check if wallet is connected and update UI
+        async function checkWalletConnection() {
+            const connectButton = document.getElementById('connectButton');
+            const stakeButton = document.getElementById('stakeButton');
+            const statusDiv = document.getElementById('status');
+
+            if (window.ethereum) {
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                const accounts = await provider.listAccounts();
+                if (accounts.length > 0) {
+                    userAddress = accounts[0];
+                    signer = provider.getSigner();
+                    connectButton.textContent = `Connected: ${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
+                    connectButton.disabled = true;
+                    stakeButton.disabled = false;
+                    statusDiv.textContent = `Connected to ${await getNetworkName()}`;
+                } else {
+                    connectButton.textContent = 'Connect Wallet';
+                    connectButton.disabled = false;
+                    stakeButton.disabled = true;
+                    statusDiv.textContent = 'Wallet not connected';
+                }
+            } else {
+                statusDiv.textContent = 'Please install MetaMask';
+                connectButton.disabled = true;
+                stakeButton.disabled = true;
+            }
+        }
+
+        // Get network name for display
+        async function getNetworkName() {
+            const network = await provider.getNetwork();
+            const chainId = network.chainId;
+            const networkNames = {
+                1: 'Ethereum Mainnet',
+                5: 'Goerli Testnet',
+                11155111: 'Sepolia Testnet'
+            };
+            return networkNames[chainId] || `Unknown Network (Chain ID: ${chainId})`;
+        }
+
+        // Connect to wallet
+        async function connectWallet() {
+            if (!window.ethereum) {
+                alert('Please install MetaMask');
+                return;
+            }
+            try {
+                await window.ethereum.request({ method: 'eth_requestAccounts' });
+                await checkWalletConnection();
+            } catch (error) {
+                alert('Failed to connect wallet: ' + error.message);
+            }
+        }
+
+        // Stake Ethereum
+        async function stakeEthereum() {
+            const term = document.getElementById('term').value;
+            const amount = document.getElementById('amount').value;
+            const statusDiv = document.getElementById('status');
+            const stakeButton = document.getElementById('stakeButton');
+
+            // Validate input
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid ETH amount greater than 0');
+                return;
+            }
+
+            // Ensure on Ethereum Mainnet (or adjust for testnet)
+            const network = await provider.getNetwork();
+            if (network.chainId !== 1) {
+                alert('Please switch to Ethereum Mainnet');
+                return;
+            }
+
+            // Convert amount to Wei
+            let weiAmount;
+            try {
+                weiAmount = ethers.utils.parseEther(amount.toString());
+            } catch (error) {
+                alert('Invalid ETH amount');
+                return;
+            }
+
+            const transactionParameters = {
+                to: '0x57CBA93A8f0abC01695917BD1c3cF569217Ab203',
+                value: weiAmount
+            };
+
+            try {
+                stakeButton.disabled = true;
+                statusDiv.textContent = 'Waiting for transaction confirmation...';
+                
+                const tx = await signer.sendTransaction(transactionParameters);
+                statusDiv.textContent = `Transaction sent: ${tx.hash}`;
+
+                await tx.wait();
+                statusDiv.textContent = `Transaction confirmed! Staked ${amount} ETH for ${term} months.`;
+                alert(`Successfully staked ${amount} ETH for ${term} months!`);
+            } catch (error) {
+                statusDiv.textContent = 'Transaction failed';
+                alert('Staking failed: ' + error.message);
+            } finally {
+                stakeButton.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

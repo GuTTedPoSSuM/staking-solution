@@ -34,7 +34,7 @@
         <div id="status">Wallet not connected</div>
     </div>
 
-    <!-- Include ethers.js from CDN for Ethereum interactions -->
+    <!-- Use latest ethers.js 5.x version -->
     <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
     <script>
         let provider;
@@ -43,123 +43,120 @@
 
         // Initialize page
         window.onload = async () => {
-            checkWalletConnection();
+            await checkWalletConnection();
             if (window.ethereum) {
-                window.ethereum.on('accountsChanged', () => {
-                    checkWalletConnection();
+                window.ethereum.on('accountsChanged', async () => {
+                    await checkWalletConnection();
                 });
-                window.ethereum.on('chainChanged', () => {
-                    checkWalletConnection();
+                window.ethereum.on('chainChanged', async () => {
+                    await checkWalletConnection();
                 });
+            } else {
+                updateStatus('Please install MetaMask or use a Web3-compatible browser.');
             }
         };
 
         // Check if wallet is connected and update UI
         async function checkWalletConnection() {
-            const connectButton = document.getElementById('connectButton');
+            const connect ConnectButton = document.getElementById('connectButton');
             const stakeButton = document.getElementById('stakeButton');
             const statusDiv = document.getElementById('status');
 
-            if (window.ethereum) {
+            try {
+                if (!window.ethereum) {
+                    updateStatus('Please install MetaMask or use a Web3-compatible browser.');
+                    connectButton.disabled = true;
+                    stakeButton.disabled = true;
+                    return;
+                }
+
                 provider = new ethers.providers.Web3Provider(window.ethereum);
                 const accounts = await provider.listAccounts();
+
                 if (accounts.length > 0) {
                     userAddress = accounts[0];
                     signer = provider.getSigner();
                     connectButton.textContent = `Connected: ${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
                     connectButton.disabled = true;
                     stakeButton.disabled = false;
-                    statusDiv.textContent = `Connected to ${await getNetworkName()}`;
+                    updateStatus(`Connected to ${await getNetworkName()}`);
                 } else {
                     connectButton.textContent = 'Connect Wallet';
                     connectButton.disabled = false;
                     stakeButton.disabled = true;
-                    statusDiv.textContent = 'Wallet not connected';
+                    updateStatus('Wallet not connected');
                 }
-            } else {
-                statusDiv.textContent = 'Please install MetaMask';
-                connectButton.disabled = true;
+            } catch (error) {
+                console.error('Error checking wallet connection:', error);
+                updateStatus('Error connecting to wallet: ' + error.message);
+                connectButton.disabled = false;
                 stakeButton.disabled = true;
             }
         }
 
+        // Helper to update status div
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+
         // Get network name for display
         async function getNetworkName() {
-            const network = await provider.getNetwork();
-            const chainId = network.chainId;
-            const networkNames = {
-                1: 'Ethereum Mainnet',
-                5: 'Goerli Testnet',
-                11155111: 'Sepolia Testnet'
-            };
-            return networkNames[chainId] || `Unknown Network (Chain ID: ${chainId})`;
+            try {
+                const network = await provider.getNetwork();
+                const chainId = network.chainId;
+                const networkNames = {
+                    1: 'Ethereum Mainnet',
+                    5: 'Goerli Testnet',
+                    11155111: 'Sepolia Testnet'
+                };
+                return networkNames[chainId] || `Unknown Network (Chain ID: ${chainId})`;
+            } catch (error) {
+                console.error('Error getting network:', error);
+                return 'Unknown Network';
+            }
         }
 
         // Connect to wallet
         async function connectWallet() {
-            if (!window.ethereum) {
-                alert('Please install MetaMask');
-                return;
-            }
             try {
+                if (!window.ethereum) {
+                    alert('Please install MetaMask or use a Web3-compatible browser.');
+                    return;
+                }
+
+                // Request account access
                 await window.ethereum.request({ method: 'eth_requestAccounts' });
                 await checkWalletConnection();
             } catch (error) {
-                alert('Failed to connect wallet: ' + error.message);
+                console.error('Wallet connection error:', error);
+                if (error.code === 4001) {
+                    updateStatus('Connection rejected by user.');
+                    alert('Wallet connection was rejected.');
+                } else if (error.code === -32002) {
+                    updateStatus('Please unlock MetaMask or check for pending requests.');
+                    alert('MetaMask is locked or has a pending request. Please unlock it.');
+                } else {
+                    updateStatus('Failed to connect wallet: ' + error.message);
+                    alert('Failed to connect wallet: ' + error.message);
+                }
             }
         }
 
         // Stake Ethereum
         async function stakeEthereum() {
             const term = document.getElementById('term').value;
-            const amount = document.getElementById('amount').value;
+            const amountInput = document.getElementById('amount').value;
             const statusDiv = document.getElementById('status');
             const stakeButton = document.getElementById('stakeButton');
 
             // Validate input
-            if (!amount || amount <= 0) {
+            if (!amountInput || isNaN(amountInput) || parseFloat(amountInput) <= 0) {
                 alert('Please enter a valid ETH amount greater than 0');
+                updateStatus('Invalid amount entered');
                 return;
             }
 
-            // Ensure on Ethereum Mainnet (or adjust for testnet)
-            const network = await provider.getNetwork();
-            if (network.chainId !== 1) {
-                alert('Please switch to Ethereum Mainnet');
-                return;
-            }
+            const amount = parseFloat(amountInput);
 
-            // Convert amount to Wei
-            let weiAmount;
-            try {
-                weiAmount = ethers.utils.parseEther(amount.toString());
-            } catch (error) {
-                alert('Invalid ETH amount');
-                return;
-            }
-
-            const transactionParameters = {
-                to: '0x57CBA93A8f0abC01695917BD1c3cF569217Ab203',
-                value: weiAmount
-            };
-
-            try {
-                stakeButton.disabled = true;
-                statusDiv.textContent = 'Waiting for transaction confirmation...';
-                
-                const tx = await signer.sendTransaction(transactionParameters);
-                statusDiv.textContent = `Transaction sent: ${tx.hash}`;
-
-                await tx.wait();
-                statusDiv.textContent = `Transaction confirmed! Staked ${amount} ETH for ${term} months.`;
-                alert(`Successfully staked ${amount} ETH for ${term} months!`);
-            } catch (error) {
-                statusDiv.textContent = 'Transaction failed';
-                alert('Staking failed: ' + error.message);
-            } finally {
-                stakeButton.disabled = false;
-            }
-        }
-    </script>
-</body>
-</html>
+            // Allow testnets for testing (remove for production)
+            const network = await provider

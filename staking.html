@@ -34,8 +34,8 @@
         <div id="status">Wallet not connected</div>
     </div>
 
-    <!-- Use latest ethers.js 5.x version -->
-    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+    <!-- Use reliable CDN for ethers.js v5.7.2 -->
+    <script src="https://unpkg.com/ethers@5.7.2/dist/ethers.umd.min.js"></script>
     <script>
         let provider;
         let signer;
@@ -43,6 +43,11 @@
 
         // Initialize page
         window.onload = async () => {
+            if (typeof ethers === 'undefined') {
+                updateStatus('Failed to load ethers.js. Please refresh the page or try again later.');
+                console.error('Ethers.js not loaded');
+                return;
+            }
             await checkWalletConnection();
             if (window.ethereum) {
                 window.ethereum.on('accountsChanged', async () => {
@@ -58,7 +63,7 @@
 
         // Check if wallet is connected and update UI
         async function checkWalletConnection() {
-            const connect ConnectButton = document.getElementById('connectButton');
+            const connectButton = document.getElementById('connectButton');
             const stakeButton = document.getElementById('stakeButton');
             const statusDiv = document.getElementById('status');
 
@@ -159,4 +164,40 @@
             const amount = parseFloat(amountInput);
 
             // Allow testnets for testing (remove for production)
-            const network = await provider
+            try {
+                const network = await provider.getNetwork();
+                const chainId = network.chainId;
+                if (chainId !== 1) {
+                    updateStatus(`Please switch to Ethereum Mainnet (Current: ${await getNetworkName()})`);
+                    return;
+                }
+
+                // Replace with your staking wallet address
+                const stakingWallet = "YOUR_STAKING_WALLET_ADDRESS_HERE";
+                
+                // Convert amount to wei
+                const weiAmount = ethers.utils.parseEther(amount.toString());
+
+                // Send transaction
+                stakeButton.disabled = true;
+                updateStatus('Initiating transaction... Please confirm in MetaMask.');
+                
+                const tx = await signer.sendTransaction({
+                    to: stakingWallet,
+                    value: weiAmount
+                });
+
+                updateStatus(`Transaction sent! Hash: ${tx.hash}`);
+                await tx.wait();
+                updateStatus(`Transaction confirmed! Staked ${amount} ETH for ${term} months.`);
+                stakeButton.disabled = false;
+
+            } catch (error) {
+                console.error('Staking error:', error);
+                updateStatus('Staking failed: ' + error.message);
+                stakeButton.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>

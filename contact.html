@@ -35,19 +35,33 @@
         <div id="status"></div>
     </div>
 
-    <!-- EmailJS SDK -->
-    <script src="https://cdn.emailjs.com/sdk/2.4.0/email.min.js"></script>
+    <!-- EmailJS SDK (latest stable version) -->
+    <script src="https://cdn.emailjs.com/sdk/3.12.1/email.min.js" onload="onEmailJSSDKLoaded()" onerror="onEmailJSSDKError()"></script>
     <script>
-        // Initialize EmailJS with Public Key
-        (function(){
+        // Track SDK load status
+        function onEmailJSSDKLoaded() {
+            console.log('EmailJS SDK loaded successfully');
+            initializeEmailJS();
+        }
+
+        function onEmailJSSDKError() {
+            console.error('Failed to load EmailJS SDK from CDN');
+            document.getElementById('status').textContent = 'Error: Failed to load EmailJS SDK. Please check your network or try again later.';
+        }
+
+        // Initialize EmailJS
+        function initializeEmailJS() {
             try {
-                emailjs.init('YueiEJtfXgbLtev1t'); // Updated EmailJS Public Key
+                if (typeof emailjs === 'undefined') {
+                    throw new Error('EmailJS SDK not available');
+                }
+                emailjs.init('YueiEJtfXgbLtev1t'); // EmailJS Public Key
                 console.log('EmailJS initialized successfully with public key: YueiEJtfXgbLtev1t');
             } catch (error) {
                 console.error('EmailJS initialization failed:', error);
-                document.getElementById('status').textContent = 'Error: Failed to initialize EmailJS. Please try again later.';
+                document.getElementById('status').textContent = 'Error: Failed to initialize EmailJS. Please check your network or try again later.';
             }
-        })();
+        }
 
         async function submitForm(event, attempt = 1, maxAttempts = 3) {
             event.preventDefault();
@@ -63,6 +77,12 @@
             }
             if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
                 statusDiv.textContent = 'Error: Please enter a valid email address';
+                return;
+            }
+
+            if (typeof emailjs === 'undefined') {
+                statusDiv.textContent = 'Error: EmailJS not loaded. Please refresh the page.';
+                console.error('EmailJS not loaded during form submission');
                 return;
             }
 

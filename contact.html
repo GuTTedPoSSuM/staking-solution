@@ -35,32 +35,48 @@
         <div id="status"></div>
     </div>
 
-    <!-- EmailJS SDK (latest stable version) -->
-    <script src="https://cdn.emailjs.com/sdk/3.12.1/email.min.js" onload="onEmailJSSDKLoaded()" onerror="onEmailJSSDKError()"></script>
+    <!-- EmailJS SDK with fallback -->
+    <script src="https://cdn.emailjs.com/sdk/3.12.1/email.min.js" onload="onEmailJSSDKLoaded()" onerror="loadFallbackSDK()"></script>
     <script>
         // Track SDK load status
+        let sdkLoaded = false;
+
         function onEmailJSSDKLoaded() {
-            console.log('EmailJS SDK loaded successfully');
+            console.log('EmailJS SDK loaded successfully from primary CDN');
+            sdkLoaded = true;
             initializeEmailJS();
         }
 
-        function onEmailJSSDKError() {
-            console.error('Failed to load EmailJS SDK from CDN');
-            document.getElementById('status').textContent = 'Error: Failed to load EmailJS SDK. Please check your network or try again later.';
+        function loadFallbackSDK() {
+            console.error('Failed to load EmailJS SDK from primary CDN, attempting fallback');
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3.12.1/dist/email.min.js';
+            script.onload = () => {
+                console.log('EmailJS SDK loaded successfully from fallback CDN');
+                sdkLoaded = true;
+                initializeEmailJS();
+            };
+            script.onerror = () => {
+                console.error('Failed to load EmailJS SDK from fallback CDN');
+                document.getElementById('status').textContent = 'Error: Failed to load EmailJS SDK. Please check your network or try again later.';
+            };
+            document.head.appendChild(script);
         }
 
-        // Initialize EmailJS
+        // Initialize EmailJS with delay
         function initializeEmailJS() {
-            try {
-                if (typeof emailjs === 'undefined') {
-                    throw new Error('EmailJS SDK not available');
+            setTimeout(() => {
+                try {
+                    if (!sdkLoaded || typeof emailjs === 'undefined') {
+                        throw new Error('EmailJS SDK not available');
+                    }
+                    emailjs.init('YueiEJtfXgbLtev1t'); // EmailJS Public Key
+                    console.log('EmailJS initialized successfully with public key: YueiEJtfXgbLtev1t');
+                } catch (error) {
+                    console.error('EmailJS initialization failed:', error);
+                    document.getElementById('status').textContent = 'Error: Failed to initialize EmailJS. Please check your network or try again later.';
                 }
-                emailjs.init('YueiEJtfXgbLtev1t'); // EmailJS Public Key
-                console.log('EmailJS initialized successfully with public key: YueiEJtfXgbLtev1t');
-            } catch (error) {
-                console.error('EmailJS initialization failed:', error);
-                document.getElementById('status').textContent = 'Error: Failed to initialize EmailJS. Please check your network or try again later.';
-            }
+            }, 100); // 100ms delay to ensure SDK is ready
         }
 
         async function submitForm(event, attempt = 1, maxAttempts = 3) {
@@ -80,8 +96,8 @@
                 return;
             }
 
-            if (typeof emailjs === 'undefined') {
-                statusDiv.textContent = 'Error: EmailJS not loaded. Please refresh the page.';
+            if (!sdkLoaded || typeof emailjs === 'undefined') {
+                statusDiv.textContent = 'Error: EmailJS not loaded. Please refresh the page or check your network.';
                 console.error('EmailJS not loaded during form submission');
                 return;
             }

@@ -35,8 +35,8 @@
         <div id="status"></div>
     </div>
 
-    <!-- EmailJS SDK (latest version 4.4.1) -->
-    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" onload="onEmailJSSDKLoaded()" onerror="loadFallbackSDK()"></script>
+    <!-- EmailJS SDK with primary CDN and local fallback -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js" onload="onEmailJSSDKLoaded()" onerror="loadFallbackSDK()"></script>
     <script>
         let sdkLoaded = false;
 
@@ -47,16 +47,16 @@
         }
 
         function loadFallbackSDK() {
-            console.error('Failed to load EmailJS SDK from primary CDN, attempting fallback');
+            console.error('Failed to load EmailJS SDK from primary CDN, attempting local fallback');
             const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js'; // Explicit fallback to specific version
+            script.src = 'js/email.min.js'; // Local fallback
             script.onload = () => {
-                console.log('EmailJS SDK loaded successfully from fallback CDN');
+                console.log('EmailJS SDK loaded successfully from local fallback');
                 sdkLoaded = true;
                 initializeEmailJS();
             };
             script.onerror = () => {
-                console.error('Failed to load EmailJS SDK from fallback CDN');
+                console.error('Failed to load EmailJS SDK from local fallback');
                 document.getElementById('status').textContent = 'Error: Failed to load EmailJS SDK. Please check your network or try again later.';
             };
             document.head.appendChild(script);
@@ -67,7 +67,10 @@
                 if (!sdkLoaded || typeof emailjs === 'undefined') {
                     throw new Error('EmailJS SDK not available');
                 }
-                emailjs.init({ publicKey: 'YueiEJtfXgbLtev1t' }); // Updated syntax for v4.x
+                emailjs.init({ 
+                    publicKey: 'YueiEJtfXgbLtev1t',
+                    blockHeadless: false // Added for compatibility in testing environments
+                });
                 console.log('EmailJS initialized successfully with public key: YueiEJtfXgbLtev1t');
             } catch (error) {
                 console.error('EmailJS initialization failed:', error);
@@ -83,6 +86,7 @@
             const checkSDK = async () => {
                 let attempts = 0;
                 while (!sdkLoaded && attempts < 10) {
+                    console.log(`Checking SDK load status (attempt ${attempts + 1}/10)`);
                     await new Promise(resolve => setTimeout(resolve, 500));
                     attempts++;
                 }

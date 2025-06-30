@@ -35,10 +35,9 @@
         <div id="status"></div>
     </div>
 
-    <!-- EmailJS SDK with fallback -->
-    <script src="https://cdn.emailjs.com/sdk/3.12.1/email.min.js" onload="onEmailJSSDKLoaded()" onerror="loadFallbackSDK()"></script>
+    <!-- EmailJS SDK (latest version 4.4.1) -->
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" onload="onEmailJSSDKLoaded()" onerror="loadFallbackSDK()"></script>
     <script>
-        // Track SDK load status
         let sdkLoaded = false;
 
         function onEmailJSSDKLoaded() {
@@ -50,7 +49,7 @@
         function loadFallbackSDK() {
             console.error('Failed to load EmailJS SDK from primary CDN, attempting fallback');
             const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3.12.1/dist/email.min.js';
+            script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js'; // Explicit fallback to specific version
             script.onload = () => {
                 console.log('EmailJS SDK loaded successfully from fallback CDN');
                 sdkLoaded = true;
@@ -63,28 +62,43 @@
             document.head.appendChild(script);
         }
 
-        // Initialize EmailJS with delay
         function initializeEmailJS() {
-            setTimeout(() => {
-                try {
-                    if (!sdkLoaded || typeof emailjs === 'undefined') {
-                        throw new Error('EmailJS SDK not available');
-                    }
-                    emailjs.init('YueiEJtfXgbLtev1t'); // EmailJS Public Key
-                    console.log('EmailJS initialized successfully with public key: YueiEJtfXgbLtev1t');
-                } catch (error) {
-                    console.error('EmailJS initialization failed:', error);
-                    document.getElementById('status').textContent = 'Error: Failed to initialize EmailJS. Please check your network or try again later.';
+            try {
+                if (!sdkLoaded || typeof emailjs === 'undefined') {
+                    throw new Error('EmailJS SDK not available');
                 }
-            }, 100); // 100ms delay to ensure SDK is ready
+                emailjs.init({ publicKey: 'YueiEJtfXgbLtev1t' }); // Updated syntax for v4.x
+                console.log('EmailJS initialized successfully with public key: YueiEJtfXgbLtev1t');
+            } catch (error) {
+                console.error('EmailJS initialization failed:', error);
+                document.getElementById('status').textContent = 'Error: Failed to initialize EmailJS. Please check your network or try again later.';
+            }
         }
 
         async function submitForm(event, attempt = 1, maxAttempts = 3) {
             event.preventDefault();
+            const statusDiv = document.getElementById('status');
+
+            // Wait for SDK to load
+            const checkSDK = async () => {
+                let attempts = 0;
+                while (!sdkLoaded && attempts < 10) {
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    attempts++;
+                }
+                if (!sdkLoaded || typeof emailjs === 'undefined') {
+                    statusDiv.textContent = 'Error: EmailJS not loaded. Please refresh the page or check your network.';
+                    console.error('EmailJS not loaded after waiting');
+                    return false;
+                }
+                return true;
+            };
+
+            if (!(await checkSDK())) return;
+
             const name = document.getElementById('name').value.trim();
             const email = document.getElementById('email').value.trim();
             const message = document.getElementById('message').value.trim();
-            const statusDiv = document.getElementById('status');
 
             // Client-side validation
             if (!name || !email || !message) {
@@ -96,17 +110,10 @@
                 return;
             }
 
-            if (!sdkLoaded || typeof emailjs === 'undefined') {
-                statusDiv.textContent = 'Error: EmailJS not loaded. Please refresh the page or check your network.';
-                console.error('EmailJS not loaded during form submission');
-                return;
-            }
-
             statusDiv.textContent = 'Sending message...';
             try {
-                // Set up timeout
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 5000); // 5-second timeout
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
 
                 console.log('Sending EmailJS request (attempt ' + attempt + '):', {
                     service_id: 'service_e4a81wh',
@@ -114,12 +121,11 @@
                     params: { from_name: name, from_email: email, message }
                 });
 
-                // Send email via EmailJS
                 const response = await emailjs.send('service_e4a81wh', 'template_lufy8wq', {
                     from_name: name,
                     from_email: email,
                     message: message
-                }, { signal: controller.signal });
+                }, { publicKey: 'YueiEJtfXgbLtev1t', signal: controller.signal });
 
                 clearTimeout(timeoutId);
                 console.log('EmailJS response (attempt ' + attempt + '):', response);
@@ -129,12 +135,12 @@
             } catch (error) {
                 console.error('Error sending email (attempt ' + attempt + '):', error);
                 if (error.name === 'AbortError' && attempt < maxAttempts) {
-                    const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
+                    const delay = Math.pow(2, attempt) * 1000;
                     console.log('Retrying after ' + delay + 'ms...');
                     await new Promise(resolve => setTimeout(resolve, delay));
                     return submitForm(event, attempt + 1, maxAttempts);
                 }
-                let errorMessage = error.text || error.message;
+                let errorMessage = error.text || error.message || 'Unknown error';
                 if (errorMessage.includes('Public Key is invalid')) {
                     errorMessage = 'Invalid EmailJS public key. Please contact support.';
                 }
